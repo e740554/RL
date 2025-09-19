@@ -5,7 +5,7 @@ import numpy as np
 class EnergyHubEnv(gym.Env):
     metadata = {"render_modes": []}
 
-    def __init__(self, seed=None):
+    def __init__(self, seed=None, max_steps: int = 720):
         super().__init__()
         self.rng = np.random.default_rng(seed)
 
@@ -22,7 +22,7 @@ class EnergyHubEnv(gym.Env):
         self.H2_CAP  = 100.0          # kg
 
         # reward weights
-        self.a1, self.a3, self.BIG = 1.0, 0.1, 5.0
+        self.a1, self.a3, self.BIG = 10.0, 0.5, 5.0
 
         # ---- spaces ----
         # obs: [x_h2, x_upw, p_ren] in [0,1]
@@ -30,7 +30,8 @@ class EnergyHubEnv(gym.Env):
         # act: [u_ely, u_split, u_md] in [0,1]
         self.action_space = spaces.Box(low=0.0, high=1.0, shape=(3,), dtype=np.float32)
 
-        self.max_steps = 720
+        # episode length
+        self.max_steps = int(max_steps)
         self.reset()
 
     def reset(self, *, seed=None, options=None):
@@ -75,11 +76,17 @@ class EnergyHubEnv(gym.Env):
         self.x_upw = np.clip(upw_next / self.UPW_CAP, 0.0, 1.0)
         self.x_h2  = np.clip(h2_next  / self.H2_CAP,  0.0, 1.0)
 
-        heat_mismatch = abs(Q_md_need - Q_avail)
+        # normalized, interpretable heat terms
+        heat_unutilized = max(0.0, Q_avail - Q_used)   # waste heat not used by MD
+        md_shortage     = max(0.0, Q_md_need - Q_used) # MD wanted more heat than it got
+        denom = (self.Q_MD_MAX + 1e-9)
+        norm_unused = heat_unutilized / denom
+        norm_short  = md_shortage     / denom
 
+        # reward with normalized penalties
         reward = (
             self.a1 * h2_prod
-            - self.a3 * heat_mismatch
+            - self.a3 * (norm_unused + norm_short)
             - self.BIG * violation
         )
 
@@ -87,10 +94,16 @@ class EnergyHubEnv(gym.Env):
         terminated = False
         truncated = self.step_idx >= self.max_steps
         obs = np.array([self.x_h2, self.x_upw, self.p_ren], dtype=np.float32)
+        # keep heat_mismatch for continuity in logs, add new diagnostics
+        heat_mismatch = abs(Q_md_need - Q_avail)
         info = {
             "h2_prod": h2_prod,
             "upw_make": upw_make,
             "heat_mismatch": heat_mismatch,
+            "heat_unutilized": heat_unutilized,
+            "md_shortage": md_shortage,
+            "norm_unused": norm_unused,
+            "norm_short": norm_short,
             "violations": violation
         }
         return obs, float(reward), terminated, truncated, info

@@ -1,0 +1,64 @@
+# ---------------------
+# Python
+# ---------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+*.egg
+.python-version
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ---------------------
+# Virtual Environments
+# ---------------------
+.venv/
+venv/
+env/
+
+# ---------------------
+# Logs, Outputs, Checkpoints
+# ---------------------
+tb/
+runs/
+logs/
+outputs/
+checkpoints/
+wandb/
+
+# ---------------------
+# Data & Artifacts
+# ---------------------
+data/
+datasets/
+*.pt
+*.pth
+*.pkl
+*.onnx
+*.npz
+*.npy
+
+# ---------------------
+# Jupyter
+# ---------------------
+.ipynb_checkpoints/
+
+# ---------------------
+# IDE / Editor
+# ---------------------
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# ---------------------
+# Environment / Secrets
+# ---------------------
+.env
+.env.*
+.envrc
+
