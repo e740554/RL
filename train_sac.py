@@ -65,7 +65,7 @@ if __name__ == "__main__":
         gradient_steps=64,
         learning_starts=2000,
         policy_kwargs=dict(net_arch=[64, 64]),
-        device="cpu"
+        device="cuda"
     )
     model.set_logger(new_logger)
     model.learn(total_timesteps=300_000, callback=callbacks)
