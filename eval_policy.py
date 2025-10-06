@@ -46,7 +46,7 @@ def eval_once(model, max_steps=720, seed=123):
 
 
 if __name__ == "__main__":
-    model = SAC.load("sac_energyhub_cpu", device="cpu")
+    model = SAC.load("sac_energyhub_20250922_1736", device="cpu")
     ks = [eval_once(model, max_steps=720, seed=100 + i) for i in range(5)]
     # summarize
     def meanstd(x):

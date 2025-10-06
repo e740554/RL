@@ -13,6 +13,7 @@ from stable_baselines3.common.callbacks import EvalCallback, BaseCallback, Callb
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.logger import configure
 import numpy as np
+import datetime
 
 from env_energyhub import EnergyHubEnv
 
@@ -45,25 +46,32 @@ if __name__ == "__main__":
     info_cb  = InfoLogger(keys=["h2_prod","upw_make","norm_unused","norm_short","violations"])
     callbacks = CallbackList([eval_cb, info_cb])
 
-    # logger
-    new_logger = configure("./tb", ["stdout", "tensorboard"])
+    # logger with timestamp for separate experiment tracking
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M")
+    log_dir = f"./tb/run_{timestamp}"
+    new_logger = configure(log_dir, ["stdout", "tensorboard"])
 
     model = SAC(
         "MlpPolicy",
         env,
         verbose=1,
-        tensorboard_log="./tb",
-        learning_rate=3e-4,
+        tensorboard_log=log_dir,
+        learning_rate=1e-3,
         gamma=0.99,
         buffer_size=100_000,
-        batch_size=128,
+        batch_size=64,
         tau=0.02,
-        train_freq=64,
+        train_freq=256,
         gradient_steps=64,
         learning_starts=2000,
         policy_kwargs=dict(net_arch=[64, 64]),
         device="cpu"
     )
     model.set_logger(new_logger)
-    model.learn(total_timesteps=200_000, callback=callbacks)
-    model.save("sac_energyhub_cpu")
+    model.learn(total_timesteps=300_000, callback=callbacks)
+
+    # Save with timestamp for version control
+    model_name = f"sac_energyhub_{timestamp}"
+    model.save(model_name)
+    print(f"Model saved as: {model_name}")
+    print(f"TensorBoard logs saved in: {log_dir}")

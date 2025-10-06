@@ -31,9 +31,9 @@ class EnergyHubEnv(gym.Env):
 
         # reward weights--- Normalized  
         # tip: a1 high enough so H2 matters; a3 moderate; BIG is hard penalty
-        self.a1  = np.float32(10.0)
+        self.a1  = np.float32(9.0)
         self.a3  = np.float32(0.5)
-        self.BIG = np.float32(5.0)
+        self.BIG = np.float32(4.0)
 
         # ---- spaces ----
         # obs: [x_h2, x_upw, p_ren] in [0,1]
